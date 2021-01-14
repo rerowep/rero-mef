@@ -33,6 +33,7 @@ from invenio_accounts.cli import commit, users
 from invenio_oaiharvester.cli import oaiharvester
 from invenio_oaiharvester.models import OAIHarvestConfig
 from invenio_records_rest.utils import obj_or_import_string
+from sqlitedict import SqliteDict
 from werkzeug.local import LocalProxy
 
 from .agents.cli import create_mef_and_agents_from_viaf, \
@@ -653,15 +654,17 @@ def csv_to_json(csv_metadata_file, json_output_file, indent, verbose):
 @click.option('-o', '--output', 'output', is_flag=True, default=False)
 @click.option('-I', '--indent', 'indent', type=click.INT, default=2)
 @click.option('-v', '--verbose', 'verbose', is_flag=True, default=False)
+@click.option('-s', '--sqlite_dict', 'sqlite_dict', default='sqlite_dict.db')
 @with_appcontext
 def csv_diff(csv_metadata_file, csv_metadata_file_compair, agent, output,
-             indent, verbose):
+             indent, verbose, sqlite_dict):
     """Agencies record diff.
 
     :param csv_metadata_file: csv metadata file to compair.
     :param csv_metadata_file_compair: csv metadata file to compair too.
     :param agent: agent type to compair too.
     :param verbose: Verbose.
+    :param sqlite_dict: SqliteDict Db file name.
     """
     def get_pid_data(line):
         """Get json from CSV text line.
@@ -727,9 +730,9 @@ def csv_diff(csv_metadata_file, csv_metadata_file_compair, agent, output,
         click.echo('Changed file: {name}'.format(name=file_name_diff))
         click.echo('Deleted file: {name}'.format(name=file_name_delete))
 
-    compaire_data = {}
-    length = number_records_in_file(csv_metadata_file_compair, 'csv')
+    compaire_data = SqliteDict(sqlite_dict, autocommit=True)
     if csv_metadata_file_compair and not agent:
+        length = number_records_in_file(csv_metadata_file_compair, 'csv')
         with open(csv_metadata_file_compair, 'r', buffering=1) as meta_file:
             label = 'Loading: {name}'.format(name=compair)
             with click.progressbar(meta_file, length=length,
