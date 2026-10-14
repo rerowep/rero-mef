@@ -1,0 +1,285 @@
+<!-- SPDX-FileCopyrightText: Fondation RERO+ -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<title>BNF Fan-Out Groups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--ground:#F7F8FA;--surface:#FFF;--ink:#171A21;--ink-soft:#5A6070;--ink-faint:#878DA0;--rule:#DFE2EA;
+--rule-soft:#EDEFF4;--accent:#3D4A9C;--good:#1D6E5F;--good-wash:#E3F1ED;--warm:#8A6A1F;--warm-wash:#F6EEDA;
+--hot:#9E4A2B;--shadow:0 1px 2px rgba(23,26,33,.05),0 8px 24px -16px rgba(23,26,33,.28);}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--ground:#12141A;--surface:#191C24;--ink:#E8EAF0;
+--ink-soft:#A0A7B8;--ink-faint:#7A8193;--rule:#2B2F3B;--rule-soft:#22262F;--accent:#939DEC;--good:#58C4A8;
+--good-wash:#17332E;--warm:#D8B15E;--warm-wash:#33290F;--hot:#E4906B;
+--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -16px rgba(0,0,0,.8);}}
+:root[data-theme="dark"]{--ground:#12141A;--surface:#191C24;--ink:#E8EAF0;--ink-soft:#A0A7B8;--ink-faint:#7A8193;
+--rule:#2B2F3B;--rule-soft:#22262F;--accent:#939DEC;--good:#58C4A8;--good-wash:#17332E;--warm:#D8B15E;
+--warm-wash:#33290F;--hot:#E4906B;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -16px rgba(0,0,0,.8);}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1260px;margin:0 auto;padding:56px 28px 96px;display:flex;flex-direction:column;gap:34px}
+.prose{max-width:66ch;display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+color:var(--ink-faint);margin:0}
+h1{font-family:Newsreader,ui-serif,Georgia,serif;font-weight:600;font-size:clamp(32px,5vw,46px);line-height:1.1;
+letter-spacing:-.015em;text-wrap:balance;margin:0}
+h2{font-family:Newsreader,ui-serif,Georgia,serif;font-weight:600;font-size:24px;margin:0}
+p{margin:0;color:var(--ink-soft)} p strong{color:var(--ink);font-weight:600} .lede{font-size:17px}
+code{font-family:"IBM Plex Mono",monospace;font-size:12.5px;background:var(--rule-soft);padding:1px 5px;
+border-radius:2px;color:var(--ink)}
+.ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:1px;background:var(--rule);
+border:1px solid var(--rule);border-radius:3px;overflow:hidden;box-shadow:var(--shadow)}
+.cell{background:var(--surface);padding:18px 20px 20px;display:flex;flex-direction:column;gap:3px}
+.cell__l{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+color:var(--ink-faint)}
+.cell__v{font-family:Newsreader,ui-serif,Georgia,serif;font-size:32px;line-height:1.05;
+font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.cell--good .cell__v{color:var(--good)} .cell--warm .cell__v{color:var(--warm)}
+.cell--hot .cell__v{color:var(--hot)}
+.cell__f{font-size:12px;color:var(--ink-faint)}
+.bar{display:flex;height:26px;border-radius:3px;overflow:hidden;border:1px solid var(--rule);background:var(--surface)}
+.seg{min-width:3px}
+.seg--linked{background:var(--accent);opacity:.6} .seg--idref{background:var(--hot);opacity:.55}
+.seg--gnd{background:var(--warm);opacity:.6} .seg--unlinked{background:var(--ink-faint);opacity:.28}
+.seg--cand{background:var(--good);opacity:.6}
+.key{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:12.5px;color:var(--ink-soft)}
+.key span{display:inline-flex;align-items:center;gap:7px}
+.sw{width:10px;height:10px;border-radius:2px;flex:none;border:1px solid var(--rule)}
+.controls{position:sticky;top:0;z-index:5;background:var(--ground);padding:12px 0;border-bottom:1px solid var(--rule);
+display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.controls input[type=search]{font:inherit;font-size:14px;padding:7px 12px;border:1px solid var(--rule);
+border-radius:2px;background:var(--surface);color:var(--ink);min-width:230px;flex:1 1 260px}
+.controls input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.fb{display:flex;flex-wrap:wrap;gap:7px}
+.fb button{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-soft);background:var(--surface);
+border:1px solid var(--rule);border-radius:2px;padding:6px 11px;cursor:pointer;text-align:left}
+.fb button:hover{color:var(--ink);border-color:var(--ink-faint)}
+.fb button[aria-pressed="true"]{color:var(--surface);background:var(--accent);border-color:var(--accent)}
+.fb button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#c{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-faint)}
+.scroller{overflow-x:auto;border:1px solid var(--rule);border-radius:3px;background:var(--surface);
+box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+thead th{position:sticky;top:0;background:var(--surface);text-align:left;font-family:"IBM Plex Mono",monospace;
+font-size:10.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);
+padding:13px 12px;border-bottom:1px solid var(--rule);white-space:nowrap}
+tbody td{padding:9px 12px;border-bottom:1px solid var(--rule-soft);vertical-align:baseline}
+tbody tr:hover td{background:var(--rule-soft)}
+.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;text-align:right;
+white-space:nowrap;color:var(--ink-soft)}
+.nbn{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--hot);white-space:nowrap}
+.nbn a{color:inherit;text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--hot) 35%,transparent)}
+.nbn a:hover{border-bottom-color:var(--hot)}
+.nbn a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pid{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-faint);
+font-variant-numeric:tabular-nums;white-space:nowrap}
+.hd{min-width:22ch} .hd .pid{display:block}
+.gl{min-width:26ch;display:flex;flex-direction:column;gap:4px}
+.gl__i{color:var(--ink-soft)} .gl__i b{color:var(--ink);font-weight:500}
+.gl__amb{color:var(--warm)}
+.rest{color:var(--ink-faint);font-size:12px}
+.st{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:10.5px;padding:2px 7px;border-radius:2px;
+white-space:nowrap;border:1px solid var(--rule);background:var(--rule-soft);color:var(--ink-faint)}
+.st-linked{color:var(--accent)} .st-idref{color:var(--hot)} .st-gnd{color:var(--warm)} .st-cand{color:var(--good)}
+tbody tr[data-s="0"] .hd>span:first-child{color:var(--accent);font-weight:500}
+.prov{font-size:13px;color:var(--ink-faint);max-width:80ch;display:flex;flex-direction:column;gap:8px}
+.prov code{font-size:12px}
+.more{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-faint);padding:14px 12px}
+.cov{font-size:12.5px;color:var(--warm);max-width:80ch}
+.rules{background:var(--surface);border:1px solid var(--rule);border-radius:3px;box-shadow:var(--shadow);
+display:flex;flex-direction:column;gap:1px;overflow:hidden;max-width:960px}
+.rule{background:var(--surface);display:grid;grid-template-columns:15ch 1fr;gap:16px;padding:13px 18px;
+font-size:13.5px;align-items:baseline;border-top:1px solid var(--rule-soft)}
+.rule:first-child{border-top:0}
+</style>
+<div class="wrap">
+<header class="prose">
+<p class="eyebrow">rero-mef × bib.rero.ch · rebuilt from the public APIs</p>
+<h1>Every BNF number bib.rero.ch holds, and whether it links</h1>
+<p class="lede">The linking rule joins an IdRef concept to a GND concept when both name the same
+normalised BNF number and nothing about that number is ambiguous. This page takes the
+<strong id="k-rows">—</strong> BNF numbers carried by a topic concept bib.rero.ch actually uses — behind
+them <strong id="k-docs">—</strong> subject references — and says for each one whether it links today,
+and if not, which side blocks it.</p>
+<p><strong id="k-linked">—</strong> link in production. The rest fail for one of three distinct reasons,
+and only one of them can be fixed here.</p>
+</header>
+<section class="ledger" id="ledger"></section>
+<section class="prose"><h2>By catalogue weight, not by row count</h2>
+<p>How many subject references in bib.rero.ch sit behind each state. A blocked number that
+carries hundreds of documents costs more than a hundred that carry none.</p></section>
+<div class="bar" id="bar" role="img" aria-label="Share of subject references by state"></div>
+<div class="key" id="key"></div>
+<p class="cov" id="cov" hidden></p>
+<section class="prose"><h2>The four outcomes</h2></section>
+<div class="rules">
+<div class="rule"><span class="st st-linked">linked</span>
+<span>One GND names this number, unambiguously, and the cluster exists in production.</span></div>
+<div class="rule"><span class="st st-idref">idref · several gnd</span>
+<span><strong>The IdRef side is blocked.</strong> Two or more GND concepts claim the same number, so the
+IdRef concept holding it faces a choice the rule refuses to make. Fixing it means deciding which GND
+concept the number belongs to.</span></div>
+<div class="rule"><span class="st st-gnd">gnd · several numbers</span>
+<span><strong>The GND side is blocked.</strong> Exactly one GND concept claims the number, but its winning
+match block names two or more <em>different</em> BNF numbers — which states no usable identifier at all.
+Fixing it means choosing in GND, not guessing here.</span></div>
+<div class="rule"><span class="st">unlinked</span>
+<span>No GND concept claims this number in either <code>exactMatch</code> or <code>closeMatch</code>.
+Nothing is blocked; there is simply nothing on the other side to link to.</span></div>
+<div class="rule"><span class="st st-cand">should link, doesn't</span>
+<span><strong>Nothing is blocked, and there is still no link.</strong> Exactly one GND concept claims the
+number, it names no other number, neither side is already taken — and mef.rero.ch holds the two in
+separate single-source clusters anyway. Spot-checking the 41 of the 2026-09-08 snapshot ruled out a stale index, a competing
+partner, the match level, and record age: 40 of them are indistinguishable from rows that do link.
+The cause is not visible from the public APIs, so this is the one state that has to be settled from
+inside the linking job.</span></div>
+</div>
+<div class="controls">
+<input id="q" type="search" placeholder="Search headings, pids or BNF numbers — Frau, Femmes, FRBNF11955655…"
+       aria-label="Search headings, pids and BNF numbers">
+<div class="fb" role="group" aria-label="Filter by state"></div>
+<span id="c"></span>
+</div>
+<div class="scroller"><table><thead><tr>
+<th scope="col">Documents</th><th scope="col">BNF number</th><th scope="col">IdRef concept</th>
+<th scope="col">State</th><th scope="col">GND claiming the number</th><th scope="col">Linked to</th>
+</tr></thead><tbody id="tb"></tbody></table>
+<div class="more" id="more" hidden></div></div>
+<section class="prov">
+<p><strong id="prov-when">—</strong> · every figure on this page is derived from two public APIs, with no
+database behind it: the topic-concept universe from <code>bib.rero.ch</code>, and the GND records claiming
+each BNF number from <code>mef.rero.ch</code>.</p>
+<p><code>uv run python scripts/fanout_concepts.py all -o data/fanout.json</code></p>
+<p>The GND side is scanned by digit prefix rather than by paging, because deep pagination without a stable
+sort silently drops and repeats records — an earlier run of this page lost 9 953 of 46 474 GND concepts
+that way.</p>
+<p>Two states of the very first snapshot are deliberately absent, because neither can be derived from the
+public APIs: the concepts resolved by GND's <code>075 $b saf</code> form-designation marker, which needs a
+transformation that is not deployed, and the cascade suggestions, which come from a separate heuristic.</p>
+</section>
+</div>
+<script type="application/json" id="data">__DATA__</script>
+<script>
+const fmt = n => n.toLocaleString("en-US").replace(/,/g, " ");
+const DATA = JSON.parse(document.getElementById("data").textContent);
+const tb = document.getElementById("tb"), q = document.getElementById("q"),
+      c = document.getElementById("c"), more = document.getElementById("more");
+const PAGE = 400;
+let filter = -1, shown = 0;
+
+const LABEL = {linked:"linked", "idref-multi":"idref · several gnd", "gnd-multi":"gnd · several numbers",
+               unlinked:"unlinked", candidate:"should link, doesn't"};
+const CLS = {linked:"linked", "idref-multi":"idref", "gnd-multi":"gnd", unlinked:"", candidate:"cand"};
+const SEG = {linked:"linked", "idref-multi":"idref", "gnd-multi":"gnd", unlinked:"unlinked", candidate:"cand"};
+const state = i => DATA.states[i];
+
+function esc(s){const d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML;}
+
+// The concept search on mef.rero.ch, which finds both sides of the pairing.
+const mef = number =>
+  `https://mef.rero.ch/all?page=1&amp;size=20&amp;q=FRBNF${number}&amp;entity=concepts`;
+
+// One lowercase haystack per row: BNF number, IdRef headings and pids, GND headings and pids.
+const HAY = DATA.rows.map(r => {
+  const parts = ["frbnf" + r[0]];
+  for (const s of r[1]) parts.push(s[0], s[1] || "");
+  for (const i of r[2]) parts.push(DATA.gnd[i][0], DATA.gnd[i][1] || "");
+  return parts.join(" ").toLowerCase();
+});
+
+function summary(){
+  const rows = DATA.rows, n = s => DATA.totals[s] || 0, w = s => DATA.weight[s] || 0;
+  const docs = DATA.states.reduce((a,s) => a + w(s), 0);
+  document.getElementById("k-rows").textContent = fmt(rows.length);
+  document.getElementById("k-linked").textContent = fmt(n("linked"));
+  document.getElementById("k-docs").textContent = fmt(docs);
+  document.getElementById("prov-when").textContent = "Data as of " + (DATA.generated || "unknown");
+  document.getElementById("ledger").innerHTML = [
+    ["Linked in production", n("linked"), w("linked"), "cell"],
+    ["IdRef blocked", n("idref-multi"), w("idref-multi"), "cell cell--hot"],
+    ["GND blocked", n("gnd-multi"), w("gnd-multi"), "cell cell--warm"],
+    ["Unlinked", n("unlinked"), w("unlinked"), "cell"],
+    ["Should link, doesn't", n("candidate"), w("candidate"), "cell cell--good"],
+  ].map(([l,v,d,cls])=>`<div class="${cls}"><span class="cell__l">${l}</span>
+    <span class="cell__v">${fmt(v)}</span>
+    <span class="cell__f">${fmt(d)} documents</span></div>`).join("");
+  document.getElementById("bar").innerHTML = DATA.states
+    .map(s => `<div class="seg seg--${SEG[s]}" style="width:${(w(s)/docs*100).toFixed(3)}%"></div>`).join("");
+  document.getElementById("key").innerHTML = DATA.states
+    .map(s => `<span><i class="sw seg--${SEG[s]}"></i><b>${fmt(w(s))}</b> ${LABEL[s]}
+      (${(w(s)/docs*100).toFixed(1)}%)</span>`).join("");
+  const uncounted = rows.length - (DATA.counted ?? rows.length);
+  const cov = document.getElementById("cov");
+  cov.hidden = uncounted === 0;
+  cov.textContent = uncounted === 0 ? "" :
+    `${fmt(uncounted)} of ${fmt(rows.length)} numbers are not counted yet — their Documents cell reads —, `
+    + `and they are sorted last inside each state. The shares above are of the ${fmt(DATA.counted)} counted.`;
+  document.querySelector(".fb").innerHTML =
+    `<button type="button" data-f="-1" aria-pressed="true">all · ${fmt(rows.length)}</button>` +
+    DATA.states.map((s,i) =>
+      `<button type="button" data-f="${i}" aria-pressed="false">${LABEL[s]} · ${fmt(n(s))}</button>`).join("");
+  for (const b of document.querySelectorAll(".fb button")) b.addEventListener("click", () => {
+    filter = Number(b.dataset.f);
+    for (const o of document.querySelectorAll(".fb button")) o.setAttribute("aria-pressed", String(o===b));
+    render(true);
+  });
+}
+
+function matching(){
+  const t = q.value.trim().toLowerCase();
+  const out = [];
+  for (let i = 0; i < DATA.rows.length; i++) {
+    if (filter >= 0 && DATA.rows[i][3] !== filter) continue;
+    if (t && !HAY[i].includes(t)) continue;
+    out.push(DATA.rows[i]);
+  }
+  return out;
+}
+
+function gndCell(indices){
+  if (!indices.length) return `<span class="rest">—</span>`;
+  const shownGnd = indices.slice(0, 3).map(i => {
+    const [pid, heading, amb, all] = DATA.gnd[i];
+    const numbers = amb ? ` <span class="gl__amb">${all.map(n=>esc(n.slice(5))).join(" · ")}</span>` : "";
+    return `<span class="gl__i" lang="de"><b>${esc(heading)}</b>
+      <span class="pid">${esc(pid)}</span>${numbers}</span>`;
+  });
+  if (indices.length > 3) shownGnd.push(`<span class="rest">+ ${indices.length - 3} more</span>`);
+  return shownGnd.join("");
+}
+
+function row(r){
+  const [number, sides, gnds, s, links, docs] = r;
+  const label = LABEL[state(s)], cls = CLS[state(s)];
+  const idref = sides.map(([pid, heading, n]) =>
+    `<span lang="fr">${esc(heading)}</span><span class="pid">${esc(pid)}${
+      sides.length > 1 ? " · " + (n < 0 ? "—" : fmt(n) + " doc") : ""}</span>`).join("");
+  return `<tr data-s="${s}"><td class="n">${docs < 0 ? '<span class="rest">—</span>' : fmt(docs)}</td>
+    <td class="nbn"><a href="${mef(number)}" target="_blank" rel="noopener"
+      title="Search FRBNF${number} in mef.rero.ch">FRBNF${number}</a></td>
+    <td class="hd">${idref}</td>
+    <td><span class="st st-${cls}">${label}</span></td>
+    <td class="gl">${gndCell(gnds)}</td>
+    <td class="pid">${links.length ? links.map(esc).join(" ") : "—"}</td></tr>`;
+}
+
+function render(reset){
+  const rows = matching();
+  if (reset) { tb.innerHTML = ""; shown = 0; }
+  const slice = rows.slice(shown, shown + PAGE);
+  tb.insertAdjacentHTML("beforeend", slice.map(row).join(""));
+  shown += slice.length;
+  c.textContent = fmt(rows.length) + " of " + fmt(DATA.rows.length) + " numbers";
+  const left = rows.length - shown;
+  more.hidden = left <= 0;
+  more.textContent = left > 0 ? `${fmt(left)} more — scroll or refine the search` : "";
+}
+
+let timer;
+q.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => render(true), 120); });
+addEventListener("scroll", () => {
+  if (!more.hidden && innerHeight + scrollY > document.body.offsetHeight - 900) render(false);
+});
+
+summary(); render(true);
+</script>
